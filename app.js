@@ -6,6 +6,12 @@ const questions = [
     correctAnswer: "blue",
   },
   {
+    topic: "Random",
+    question: "What is the duration of WTF?",
+    possibleAnswers: ["6 Months", "1 year", "4 months"],
+    correctAnswer: "1 year",
+  },
+  {
     topic: "tech",
     question: "What is the best language to learn?",
     possibleAnswers: ["javascript", "python", "ruby"],
@@ -13,7 +19,7 @@ const questions = [
   },
   {
     topic: "math",
-    question: "what is 4 + 4",
+    question: "What is 4 + 4?",
     possibleAnswers: ["7", "8", "9", "10"],
     correctAnswer: "8",
   },
@@ -28,45 +34,79 @@ const questions = [
 const quizProgress = document.getElementById("quizProgress");
 const questionContainer = document.getElementById("questionContainer");
 const answerContainer = document.getElementById("answerContainer");
+
 let currentQuestionIndex = 0;
+let score = 0;
+let selectedAnswer = null;
 
-function handleQuestion(index) {
-  // handle quiz progress section
+function renderProgress(index) {
   quizProgress.innerHTML = "";
-  questions.forEach((question) => {
-    quizProgress.innerHTML += "<span></span>";
-  });
-  let spans = document.querySelectorAll("span");
-  for (let i = 0; i <= index; i++) {
-    spans[i].classList.add("seen");
-  }
-
-  // topic/question
-  questionContainer.innerHTML = `<p>${questions[index].topic}</p>
-  <p>${questions[index].question}</p>
-  `;
-
-  // answers
-  answerContainer.innerHTML = "";
-  questions[index].possibleAnswers.forEach((answer) => {
-    answerContainer.innerHTML += `<button>${answer}</button>`;
-  });
-  let answers = document.querySelectorAll("button");
-  answers.forEach((answer) => {
-    answer.addEventListener("click", (e) => {
-      if (e.target.textContent === questions[index].correctAnswer) {
-        console.log("correct! ");
-      } else {
-        console.log("wrong");
-      }
-      if (currentQuestionIndex === questions.length - 1) {
-        currentQuestionIndex = 0;
-      } else {
-        currentQuestionIndex++;
-      }
-      handleQuestion(currentQuestionIndex);
-    });
+  questions.forEach((_, i) => {
+    const span = document.createElement("span");
+    if (i <= index) span.classList.add("seen");
+    quizProgress.appendChild(span);
   });
 }
 
-handleQuestion(currentQuestionIndex);
+function loadQuestion(index) {
+  renderProgress(index);
+  selectedAnswer = null;
+
+  const q = questions[index];
+  questionContainer.innerHTML = `
+    <p class="topic">${q.topic}</p>
+    <h2>${q.question}</h2>
+  `;
+
+  answerContainer.innerHTML = "";
+  q.possibleAnswers.forEach((answer) => {
+    const btn = document.createElement("button");
+    btn.textContent = answer;
+    btn.onclick = () => {
+      selectedAnswer = answer;
+      nextBtn.style.display = "inline-block";
+    };
+    answerContainer.appendChild(btn);
+  });
+}
+
+function checkAnswer() {
+  if (selectedAnswer === questions[currentQuestionIndex].correctAnswer) {
+    score++;
+  }
+
+  currentQuestionIndex++;
+  nextBtn.style.display = "none";
+
+  if (currentQuestionIndex < questions.length) {
+    loadQuestion(currentQuestionIndex);
+  } else {
+    showScore();
+  }
+}
+
+function showScore() {
+  questionContainer.innerHTML = `<h2>You scored ${score} out of ${questions.length}</h2>`;
+  answerContainer.innerHTML = "";
+
+  const restartBtn = document.createElement("button");
+  restartBtn.textContent = "Restart Quiz";
+  restartBtn.onclick = restartQuiz;
+  answerContainer.appendChild(restartBtn);
+}
+
+function restartQuiz() {
+  currentQuestionIndex = 0;
+  score = 0;
+  loadQuestion(currentQuestionIndex);
+}
+
+// Create Next button dynamically
+const nextBtn = document.createElement("button");
+nextBtn.textContent = "Next";
+nextBtn.style.display = "none";
+nextBtn.onclick = checkAnswer;
+answerContainer.after(nextBtn);
+
+// Start
+loadQuestion(currentQuestionIndex);
